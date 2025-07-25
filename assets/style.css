@@ -1,0 +1,406 @@
+/* استایل‌های اصلی آزمون */
+.dynamic-test-box {
+  max-width: 700px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.08);
+  font-family: 'Tahoma', sans-serif;
+}
+
+.dynamic-test-box h1 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.test-image {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 150px;
+  border-radius: 8px;
+}
+
+.test-description {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.test-duration {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 30px;
+}
+
+.test-form {
+  margin-top: 20px;
+}
+
+/* استایل‌های تایمر */
+.dtd-timer-container {
+  background: #fff;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 25px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dtd-timer-display {
+  margin-bottom: 10px;
+}
+
+.dtd-timer-label {
+  font-size: 14px;
+  color: #666;
+  margin-left: 10px;
+}
+
+.dtd-timer {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+  font-family: 'Courier New', monospace;
+  background: #ecf0f1;
+  padding: 8px 15px;
+  border-radius: 6px;
+  display: inline-block;
+  min-width: 80px;
+  transition: all 0.3s ease;
+}
+
+.dtd-timer-bar {
+  width: 100%;
+  height: 8px;
+  background: #ecf0f1;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.dtd-timer-progress {
+  height: 100%;
+  background: #27ae60;
+  width: 0%;
+  transition: width 0.5s ease, background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+/* استایل‌های مودال اصلی */
+.dtd-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+  animation: dtdModalFadeIn 0.3s ease-out;
+}
+
+.dtd-modal-content {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: dtdModalSlideUp 0.4s ease-out;
+  overflow: hidden;
+}
+
+.dtd-modal-header {
+  background: #e74c3c;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.dtd-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.dtd-modal-body {
+  padding: 25px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.dtd-modal-footer {
+  padding: 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.dtd-modal-btn {
+  background: #0073aa;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-family: inherit;
+}
+
+.dtd-modal-btn:hover {
+  background: #005177;
+}
+
+.dtd-modal-btn:focus {
+  outline: 2px solid #0073aa;
+  outline-offset: 2px;
+}
+
+/* استایل‌های مودال بهبود یافته */
+#dtd-countdown-redirect {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+#dtd-countdown-redirect p {
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+#dtd-redirect-timer {
+  display: inline-block;
+  background: #0073aa;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  min-width: 25px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  animation: dtdTimerPulse 1s infinite;
+}
+
+.dtd-redirect-progress-bar {
+  position: relative;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#dtd-redirect-progress {
+  background: linear-gradient(90deg, #0073aa 0%, #005177 100%);
+  height: 100%;
+  border-radius: 3px;
+  position: relative;
+  transition: width 1s linear;
+}
+
+#dtd-redirect-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  animation: dtdProgressShine 2s infinite;
+}
+
+/* بهبود دکمه انتقال فوری */
+#dtd-redirect-now-btn {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+#dtd-redirect-now-btn:hover {
+  background: linear-gradient(45deg, #218838, #1ea080);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+#dtd-redirect-now-btn:active {
+  transform: translateY(0);
+}
+
+/* انیمیشن‌ها */
+@keyframes dtdModalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+@keyframes dtdModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dtdTimerPulse {
+  0%, 100% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.05); 
+  }
+}
+
+@keyframes dtdProgressShine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* استایل تایمر در حالت خطر */
+.dtd-timer.danger {
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+  animation: dtdTimerPulse 0.8s infinite;
+}
+
+/* Admin Panel Styles */
+.wp-list-table.widefat {
+  font-family: Tahoma, sans-serif;
+  font-size: 15px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.wp-list-table th, .wp-list-table td {
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.wp-list-table th {
+  background: #f1f1f1;
+  font-weight: bold;
+}
+
+.wp-list-table tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.wp-list-table input[type="text"],
+.wp-list-table input[type="number"],
+.wp-list-table textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.wp-list-table input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
+/* دکمه‌های آزمون */
+.dtd-exam-btn {
+  display: inline-block;
+  margin: 10px 0 0 0;
+  padding: 8px 20px;
+  background: #0073aa;
+  color: #fff !important;
+  border-radius: 6px;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.dtd-exam-btn:hover {
+  background: #005177;
+  color: #fff !important;
+}
+
+/* پیغام‌های سیستم */
+.dtd-login-required {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  margin: 20px 0;
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+  .dynamic-test-box {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .dtd-timer {
+    font-size: 20px;
+    padding: 6px 12px;
+  }
+  
+  .dtd-modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .dtd-modal-header,
+  .dtd-modal-body,
+  .dtd-modal-footer {
+    padding: 15px;
+  }
+  
+  #dtd-countdown-redirect {
+    padding: 12px;
+  }
+  
+  #dtd-countdown-redirect p {
+    font-size: 14px;
+  }
+  
+  #dtd-redirect-now-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    width: 100%;
+  }
+}
