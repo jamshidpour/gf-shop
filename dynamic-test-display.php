@@ -72,18 +72,24 @@ function dtd_settings_page_callback() {
         
         $only_logged_in = isset($_POST['dtd_only_logged_in']) ? 1 : 0;
         $only_purchased = isset($_POST['dtd_only_purchased']) ? 1 : 0;
-        $redirect_url = isset($_POST['dtd_redirect_url']) ? sanitize_url($_POST['dtd_redirect_url']) : '';
+        $redirect_page_id = isset($_POST['dtd_redirect_page_id']) ? intval($_POST['dtd_redirect_page_id']) : 0;
         
         update_option('dtd_only_logged_in', $only_logged_in);
         update_option('dtd_only_purchased', $only_purchased);
-        update_option('dtd_redirect_url', $redirect_url);
+        update_option('dtd_redirect_page_id', $redirect_page_id);
         
         add_settings_error('dtd_settings', 'dtd_settings_saved', __('تنظیمات با موفقیت ذخیره شد.', 'dynamic-test-display'), 'updated');
     }
     
     $only_logged_in = get_option('dtd_only_logged_in', 1);
     $only_purchased = get_option('dtd_only_purchased', 1);
-    $redirect_url = get_option('dtd_redirect_url', '');
+    $redirect_page_id = get_option('dtd_redirect_page_id', 0);
+    
+    // گرفتن لیست صفحات
+    $pages = get_pages(array(
+        'sort_column' => 'post_title',
+        'sort_order' => 'ASC'
+    ));
     
     // نمایش پیغام‌های خطا/موفقیت
     settings_errors('dtd_settings');
@@ -108,10 +114,17 @@ function dtd_settings_page_callback() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php _e('لینک بازگشت پس از اتمام آزمون', 'dynamic-test-display'); ?></th>
+                    <th scope="row"><?php _e('صفحه بازگشت پس از اتمام آزمون', 'dynamic-test-display'); ?></th>
                     <td>
-                        <input type="url" name="dtd_redirect_url" value="<?php echo esc_attr($redirect_url); ?>" class="regular-text" placeholder="https://example.com/my-account" />
-                        <p class="description"><?php _e('لینک صفحه‌ای که کاربر پس از اتمام آزمون به آن هدایت شود. اگر خالی باشد، به حساب کاربری هدایت می‌شود.', 'dynamic-test-display'); ?></p>
+                        <select name="dtd_redirect_page_id" class="regular-text">
+                            <option value="0"><?php _e('استفاده از تنظیمات Gravity Forms', 'dynamic-test-display'); ?></option>
+                            <?php foreach ($pages as $page): ?>
+                                <option value="<?php echo esc_attr($page->ID); ?>" <?php selected($redirect_page_id, $page->ID); ?>>
+                                    <?php echo esc_html($page->post_title); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php _e('در صورت انتخاب صفحه، کاربر پس از اتمام آزمون به آن صفحه هدایت می‌شود. در غیر این صورت از تنظیمات Gravity Forms استفاده می‌شود.', 'dynamic-test-display'); ?></p>
                     </td>
                 </tr>
             </table>
@@ -162,92 +175,33 @@ add_action('gform_pre_submission', function($form) {
     if (isset($_POST['dtd_auto_submit']) && $_POST['dtd_auto_submit'] === '1') {
         dtd_log("Auto-submit detected for form ID: " . $form['id']);
         
-        // پر کردن فیلدهای خالی با مقدار 0
+        // پر کردن فیلدهای خالی رادیو با مقدار 0
         foreach ($form['fields'] as $field) {
-            $field_id = $field->id;
-            $input_name = 'input_' . $field_id;
-            
-            // بررسی انواع مختلف فیلد
-            switch ($field->type) {
-                case 'radio':
-                    if (empty($_POST[$input_name])) {
-                        // جستجو برای گزینه با مقدار 0، اگر نبود اولین گزینه
-                        $default_value = '0';
-                        $has_zero_option = false;
-                        
-                        foreach ($field->choices as $choice) {
-                            if ($choice['value'] === '0') {
-                                $has_zero_option = true;
-                                break;
-                            }
-                        }
-                        
-                        // اگر گزینه 0 وجود نداشت، اولین گزینه را انتخاب کن
-                        if (!$has_zero_option && !empty($field->choices)) {
-                            $default_value = $field->choices[0]['value'];
-                        }
-                        
-                        $_POST[$input_name] = $default_value;
-                        dtd_log("Auto-filled radio field {$field_id} with value: " . $default_value);
-                    }
-                    break;
+            if ($field->type === 'radio') {
+                $field_id = $field->id;
+                $input_name = 'input_' . $field_id;
+                
+                if (empty($_POST[$input_name])) {
+                    // جستجو برای گزینه با مقدار 0، اگر نبود اولین گزینه
+                    $default_value = '0';
+                    $has_zero_option = false;
                     
-                case 'select':
-                    if (empty($_POST[$input_name])) {
-                        // جستجو برای گزینه با مقدار 0
-                        $default_value = '0';
-                        $has_zero_option = false;
-                        
-                        foreach ($field->choices as $choice) {
-                            if ($choice['value'] === '0') {
-                                $has_zero_option = true;
-                                break;
-                            }
+                    foreach ($field->choices as $choice) {
+                        if ($choice['value'] === '0') {
+                            $has_zero_option = true;
+                            break;
                         }
-                        
-                        if (!$has_zero_option && !empty($field->choices)) {
-                            $default_value = $field->choices[0]['value'];
-                        }
-                        
-                        $_POST[$input_name] = $default_value;
-                        dtd_log("Auto-filled select field {$field_id} with value: " . $default_value);
                     }
-                    break;
                     
-                case 'text':
-                case 'textarea':
-                case 'number':
-                case 'email':
-                case 'phone':
-                case 'website':
-                    if (empty($_POST[$input_name])) {
+                    // اگر گزینه 0 وجود نداشت، یک گزینه پیش‌فرض با مقدار 0 تنظیم کن
+                    if (!$has_zero_option) {
                         $_POST[$input_name] = '0';
-                        dtd_log("Auto-filled {$field->type} field {$field_id} with value: 0");
+                    } else {
+                        $_POST[$input_name] = '0';
                     }
-                    break;
                     
-                case 'checkbox':
-                    // برای checkbox ها باید به صورت متفاوت عمل کرد
-                    if ($field->isRequired) {
-                        $has_value = false;
-                        
-                        // بررسی اینکه آیا حداقل یک checkbox انتخاب شده
-                        foreach ($field->choices as $index => $choice) {
-                            $checkbox_input = 'input_' . $field_id . '.' . ($index + 1);
-                            if (!empty($_POST[$checkbox_input])) {
-                                $has_value = true;
-                                break;
-                            }
-                        }
-                        
-                        // اگر هیچ checkbox انتخاب نشده، اولی را انتخاب کن
-                        if (!$has_value && !empty($field->choices)) {
-                            $first_checkbox = 'input_' . $field_id . '.1';
-                            $_POST[$first_checkbox] = $field->choices[0]['value'];
-                            dtd_log("Auto-filled required checkbox field {$field_id}");
-                        }
-                    }
-                    break;
+                    dtd_log("Auto-filled radio field {$field_id} with value: 0");
+                }
             }
         }
         
@@ -263,19 +217,24 @@ add_action('gform_pre_submission', function($form) {
     }
 }, 5);
 
-// جلوگیری از ریدایرکت اتوماتیک برای ارسال اتوماتیک
+// جلوگیری از ریدایرکت خاص برای ارسال اتوماتیک - استفاده از تنظیمات گرویتی فرم
 add_filter('gform_confirmation', function($confirmation, $form, $entry, $ajax) {
-    // بررسی اینکه آیا این ارسال اتوماتیک بوده
-    if (isset($_POST['dtd_auto_submit']) && $_POST['dtd_auto_submit'] === '1') {
-        dtd_log("Auto-submit confirmation for form ID: " . $form['id']);
+    // بررسی اینکه آیا تنظیمات plugin بازنویسی کرده
+    $redirect_page_id = get_option('dtd_redirect_page_id', 0);
+    
+    // فقط در صورت تنظیم صفحه خاص، از تنظیمات plugin استفاده شود
+    if (isset($_POST['dtd_auto_submit']) && $_POST['dtd_auto_submit'] === '1' && $redirect_page_id > 0) {
+        dtd_log("Auto-submit confirmation with custom redirect for form ID: " . $form['id']);
         
-        // بازگرداندن پیام ساده بدون ریدایرکت
-        return array(
-            'redirect' => '',
-            'message' => '<div id="dtd-auto-submit-success" style="display:none;">فرم با موفقیت ارسال شد</div>'
-        );
+        $redirect_url = get_permalink($redirect_page_id);
+        if ($redirect_url) {
+            return array(
+                'redirect' => $redirect_url
+            );
+        }
     }
     
+    // در غیر این صورت، استفاده از تنظیمات عادی Gravity Forms
     return $confirmation;
 }, 10, 4);
 
@@ -313,6 +272,34 @@ function dtd_get_tests($only_active = false) {
     }
 }
 
+// تابع برای گرفتن URL ریدایرکت
+function dtd_get_redirect_url($form_id) {
+    $redirect_page_id = get_option('dtd_redirect_page_id', 0);
+    
+    if ($redirect_page_id > 0) {
+        $redirect_url = get_permalink($redirect_page_id);
+        if ($redirect_url) {
+            return $redirect_url;
+        }
+    }
+    
+    // در صورت عدم تنظیم، از تنظیمات Gravity Forms استفاده کن
+    if (class_exists('GFAPI')) {
+        $form = GFAPI::get_form($form_id);
+        if ($form && isset($form['confirmation']) && is_array($form['confirmation'])) {
+            // بررسی تنظیمات confirmation فرم
+            if (isset($form['confirmation']['type']) && $form['confirmation']['type'] === 'redirect') {
+                return $form['confirmation']['url'];
+            }
+        }
+    }
+    
+    // پیش‌فرض
+    return function_exists('wc_get_account_endpoint_url') ? 
+        wc_get_account_endpoint_url('dashboard') : 
+        home_url('/my-account');
+}
+
 // شورتکد نمایش آزمون با تمام بهبودهای جدید
 add_shortcode('dynamic_test_form', function() {
     $slug = isset($_GET['test']) ? sanitize_text_field($_GET['test']) : null;
@@ -329,12 +316,7 @@ add_shortcode('dynamic_test_form', function() {
         return '<p>' . __('فرم مربوطه در سیستم یافت نشد.', 'dynamic-test-display') . '</p>';
     }
     
-    $redirect_url = get_option('dtd_redirect_url', '');
-    if (empty($redirect_url)) {
-        $redirect_url = function_exists('wc_get_account_endpoint_url') ? 
-            wc_get_account_endpoint_url('dashboard') : 
-            home_url('/my-account');
-    }
+    $redirect_url = dtd_get_redirect_url($test['form_id']);
     
     ob_start(); ?>
     <div class="dynamic-test-box">
@@ -375,7 +357,7 @@ add_shortcode('dynamic_test_form', function() {
                     <p style="margin-top: 20px; font-weight: bold; color: #0073aa;">
                         <?php _e('شما تا', 'dynamic-test-display'); ?> 
                         <span id="dtd-redirect-timer">10</span> 
-                        <?php _e('ثانیه دیگر به مرحله ثبت اطلاعات شخصی منتقل می‌شوید.', 'dynamic-test-display'); ?>
+                        <?php _e('ثانیه دیگر به صفحه بعدی منتقل می‌شوید.', 'dynamic-test-display'); ?>
                     </p>
                     <div class="dtd-redirect-progress-bar" style="width: 100%; height: 6px; background: #f0f0f0; border-radius: 3px; margin-top: 10px; overflow: hidden;">
                         <div id="dtd-redirect-progress" style="height: 100%; background: #0073aa; width: 0%; transition: width 1s linear;"></div>
@@ -446,8 +428,8 @@ add_shortcode('dynamic_test_form', function() {
                     return;
                 }
 
-                // پر کردن فیلدهای خالی با مقدار 0
-                fillEmptyFields(form);
+                // پر کردن فیلدهای رادیو خالی با مقدار 0
+                fillEmptyRadioFields(form);
 
                 // غیرفعال کردن اعتبارسنجی
                 disableClientValidation(form);
@@ -460,18 +442,6 @@ add_shortcode('dynamic_test_form', function() {
                     hiddenInput.name = 'dtd_auto_submit';
                     hiddenInput.value = '1';
                     form.appendChild(hiddenInput);
-                }
-
-                // جلوگیری از ریدایرکت معمولی Gravity Forms
-                if (typeof gform !== 'undefined') {
-                    const originalRedirect = gform.redirect;
-                    gform.redirect = function() {
-                        if (isAutoSubmitting) {
-                            console.log('Redirect blocked for auto-submit');
-                            return false;
-                        }
-                        return originalRedirect.apply(this, arguments);
-                    };
                 }
 
                 // ارسال فرم
@@ -492,8 +462,8 @@ add_shortcode('dynamic_test_form', function() {
             }
         }
         
-        function fillEmptyFields(form) {
-            // پر کردن Radio Buttons
+        function fillEmptyRadioFields(form) {
+            // پر کردن Radio Buttons با مقدار 0
             const radioGroups = {};
             form.querySelectorAll('input[type="radio"]').forEach(radio => {
                 if (!radioGroups[radio.name]) {
@@ -505,49 +475,17 @@ add_shortcode('dynamic_test_form', function() {
             Object.keys(radioGroups).forEach(groupName => {
                 const isChecked = form.querySelector(`input[name="${groupName}"]:checked`);
                 if (!isChecked) {
-                    // اولویت با گزینه‌ای که مقدار 0 دارد
-                    const zeroOption = radioGroups[groupName].find(r => r.value === '0');
-                    const defaultOption = zeroOption || radioGroups[groupName][0];
-                    
-                    if (defaultOption) {
-                        defaultOption.checked = true;
-                        console.log(`Radio group ${groupName} filled with value: ${defaultOption.value}`);
-                    }
-                }
-            });
-
-            // پر کردن Text Inputs
-            form.querySelectorAll('input[type="text"], input[type="number"], textarea, input[type="email"]').forEach(input => {
-                if (!input.value.trim()) {
-                    input.value = '0';
-                    console.log(`Text field ${input.name} filled with: 0`);
-                }
-            });
-
-            // پر کردن Select Boxes
-            form.querySelectorAll('select').forEach(select => {
-                if (!select.value || select.value === '') {
-                    // اولویت با گزینه‌ای که مقدار 0 دارد
-                    const zeroOption = select.querySelector('option[value="0"]');
-                    const defaultOption = zeroOption || select.querySelector('option:not([value=""]):not([disabled])');
-                    
-                    if (defaultOption) {
-                        select.value = defaultOption.value;
-                        console.log(`Select ${select.name} filled with value: ${defaultOption.value}`);
-                    }
-                }
-            });
-
-            // پر کردن Checkboxes الزامی
-            form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                const fieldContainer = checkbox.closest('.gfield');
-                if (fieldContainer && fieldContainer.classList.contains('gfield_contains_required')) {
-                    const groupName = checkbox.name.replace(/\[\d+\]$/, '');
-                    const isAnyChecked = form.querySelector(`input[name*="${groupName}"]:checked`);
-                    
-                    if (!isAnyChecked && checkbox.value === '0') {
-                        checkbox.checked = true;
-                        console.log(`Required checkbox ${checkbox.name} checked with value: 0`);
+                    // اولین گزینه رادیو را انتخاب کن و مقدار آن را به 0 تغییر بده
+                    const firstRadio = radioGroups[groupName][0];
+                    if (firstRadio) {
+                        // ایجاد input مخفی با مقدار 0
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = groupName;
+                        hiddenInput.value = '0';
+                        form.appendChild(hiddenInput);
+                        
+                        console.log(`Radio group ${groupName} filled with value: 0`);
                     }
                 }
             });
